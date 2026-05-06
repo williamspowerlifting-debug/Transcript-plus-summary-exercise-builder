@@ -1,0 +1,154 @@
+<!-- ONLY showing key additions to keep this readable -->
+<!-- Your full file is VERY large, so here are SAFE PATCH INSERTS -->
+
+<!-- ============================= -->
+<!-- ✅ 1. ADD THIS IN STEP 4 CARD -->
+<!-- ============================= -->
+
+<div class="level-row">
+  <label for="exerciseType">Exercise type:</label>
+  <select id="exerciseType">
+    <option value="transcript" selected>Transcript Gap Fill</option>
+    <option value="summary">Summary Gap Fill</option>
+  </select>
+</div>
+
+
+<!-- ============================= -->
+<!-- ✅ 2. ADD GLOBAL STATE -->
+<!-- ============================= -->
+
+<script>
+let summaryText = "";
+let usingSummaryMode = false;
+</script>
+
+
+<!-- ============================= -->
+<!-- ✅ 3. ADD SUMMARY FUNCTION -->
+<!-- ============================= -->
+
+<script>
+async function generateSummary(transcript) {
+  const res = await fetch(WORKER + "/generate-summary", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ transcript })
+  });
+
+  if (!res.ok) throw new Error("Summary failed");
+
+  const data = await res.json();
+  return data.summary;
+}
+</script>
+
+
+<!-- ============================= -->
+<!-- ✅ 4. MODIFY makeItHappen() -->
+<!-- ============================= -->
+
+<script>
+async function makeItHappen() {
+  if (!sentences.length) { alert("No transcript yet."); return; }
+
+  const level = document.getElementById("levelSelect").value;
+  const type = document.getElementById("exerciseType").value;
+
+  const btn = document.getElementById("makeBtn");
+  btn.disabled = true;
+  btn.innerText = "⏳ Working magic...";
+
+  let workingText = sentences.map(s => s.originalText).join(" ");
+
+  try {
+
+    // =====================
+    // 🧠 SUMMARY MODE
+    // =====================
+    if (type === "summary") {
+
+      usingSummaryMode = true;
+      btn.innerText = "⏳ Generating summary...";
+
+      summaryText = await generateSummary(workingText);
+
+      const rawSentences = splitIntoSentences(summaryText);
+
+      sentences = rawSentences.map((text, i) => ({
+        words: text.split(/\s+/).map(w => ({
+          text: w,
+          time: 0,
+          isGap: false
+        })),
+        startTime: i * 5,
+        endTime: (i + 1) * 5,
+        originalText: text
+      }));
+
+      renderTranscript();
+
+      workingText = summaryText;
+
+    } else {
+      usingSummaryMode = false;
+    }
+
+    btn.innerText = "⏳ Adding gaps...";
+
+    const res = await fetch(WORKER + "/generate-gaps", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ transcript: workingText, level })
+    });
+
+    if (!res.ok) throw new Error("Gap generation failed");
+
+    const data = await res.json();
+    applyAISuggestedGaps(data.sections);
+
+  } catch (err) {
+    alert("❌ " + err.message);
+  }
+
+  btn.innerText = "✨ Make it happen";
+  btn.disabled = false;
+}
+</script>
+
+
+<!-- ============================= -->
+<!-- ✅ 5. UPDATE HELP TEXT DYNAMICALLY -->
+<!-- ============================= -->
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const selector = document.getElementById("exerciseType");
+  const help = document.querySelector(".transcript-help");
+
+  selector.addEventListener("change", () => {
+    if (selector.value === "summary") {
+      help.innerHTML = "💡 <b>Summary mode:</b> Students watch the full video and complete this summary.";
+    } else {
+      help.innerHTML = "💡 <b>Tap or click any word</b> to mark it as a gap.";
+    }
+  });
+});
+</script>
+
+
+<!-- ============================= -->
+<!-- ✅ 6. LOCK EDIT MODE IN SUMMARY -->
+<!-- ============================= -->
+
+<script>
+const originalToggleEditMode = toggleEditMode;
+
+toggleEditMode = function() {
+  if (usingSummaryMode) {
+    alert("Edit mode disabled in summary mode.");
+    return;
+  }
+  originalToggleEditMode();
+};
+</script>
