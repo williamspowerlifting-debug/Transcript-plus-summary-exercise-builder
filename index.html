@@ -3,711 +3,791 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🎧 AI Listening Exercise Builder v2</title>
+<title>Listening Exercise Builder</title>
 <style>
-/* ===== BASE ===== */
-*{box-sizing:border-box;}
-body{font-family:system-ui,sans-serif;background:#f1f5f9;margin:0;padding:20px 10px;}
-.container{max-width:920px;margin:0 auto;}
-h1{text-align:center;color:#1e293b;margin-bottom:6px;}
-.subtitle{text-align:center;color:#64748b;font-size:14px;margin-bottom:28px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f0f4ff;min-height:100vh;}
 
-/* ===== STEPPER ===== */
-.steps{display:flex;justify-content:center;gap:0;margin-bottom:28px;flex-wrap:wrap;}
-.step-item{display:flex;align-items:center;gap:0;}
-.step-dot{
-  width:32px;height:32px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-weight:700;font-size:13px;
-  background:#e2e8f0;color:#94a3b8;
-  transition:all .3s;
+/* ── APP SHELL ── */
+.app{max-width:860px;margin:0 auto;padding:20px 16px 60px;}
+
+/* ── HEADER ── */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;background:white;border-radius:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:18px;
+  flex-wrap:wrap;gap:12px;
 }
-.step-dot.active{background:#4f46e5;color:white;}
-.step-dot.done{background:#10b981;color:white;}
-.step-label{font-size:11px;color:#64748b;margin:0 8px;white-space:nowrap;}
-.step-line{width:28px;height:2px;background:#e2e8f0;}
-.step-line.done{background:#10b981;}
+.brand{font-size:18px;font-weight:800;color:#1e1b4b;letter-spacing:-.3px;}
+.brand span{color:#4f46e5;}
 
-/* ===== CARDS ===== */
+/* Exercise type toggle */
+.type-toggle{
+  display:flex;background:#f1f5f9;border-radius:10px;padding:3px;gap:2px;
+}
+.type-btn{
+  padding:7px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;
+  cursor:pointer;background:transparent;color:#64748b;transition:all .2s;
+}
+.type-btn.active{background:white;color:#4f46e5;box-shadow:0 1px 3px rgba(0,0,0,.12);}
+
+/* Level selector */
+.level-select{
+  padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:8px;
+  font-size:13px;font-weight:600;color:#475569;background:white;cursor:pointer;
+  outline:none;
+}
+.level-select:focus{border-color:#4f46e5;}
+
+/* ── CARDS ── */
 .card{
-  background:white;border-radius:14px;
-  padding:22px 24px;margin-bottom:18px;
-  box-shadow:0 1px 4px rgba(0,0,0,.06);
-  transition:opacity .3s;
+  background:white;border-radius:14px;padding:24px;
+  box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:16px;
 }
-.card.locked{opacity:.45;pointer-events:none;}
-.card-title{font-size:16px;font-weight:700;color:#1e293b;margin:0 0 14px;}
 
-/* ===== FORM ELEMENTS ===== */
-label{display:block;font-size:13px;font-weight:600;color:#475569;margin-bottom:4px;}
-input[type=text],input[type=url],select,textarea{
-  width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;
-  border-radius:8px;font-size:14px;outline:none;
-  transition:border-color .2s;
+/* ── UPLOAD ZONE ── */
+.drop-zone{
+  border:2.5px dashed #c7d2fe;border-radius:14px;
+  padding:52px 24px;text-align:center;
+  transition:all .2s;cursor:pointer;
+  background:#fafbff;
 }
-input[type=text]:focus,input[type=url]:focus,select:focus,textarea:focus{
-  border-color:#4f46e5;
+.drop-zone:hover,.drop-zone.dragover{
+  border-color:#4f46e5;background:#eef2ff;
 }
-input[type=file]{display:none;}
-
-/* ===== BUTTONS ===== */
-.btn{
+.drop-icon{font-size:52px;margin-bottom:14px;}
+.drop-title{font-size:22px;font-weight:800;color:#1e293b;margin-bottom:6px;}
+.drop-sub{font-size:14px;color:#64748b;margin-bottom:20px;}
+.browse-btn{
   display:inline-flex;align-items:center;gap:6px;
-  padding:9px 18px;border:none;border-radius:8px;
-  font-size:14px;font-weight:600;cursor:pointer;
-  transition:background .2s,opacity .2s;
+  padding:11px 24px;background:#4f46e5;color:white;
+  border:none;border-radius:10px;font-size:15px;font-weight:700;
+  cursor:pointer;transition:background .2s;
 }
-.btn-primary{background:#4f46e5;color:white;}
-.btn-primary:hover{background:#4338ca;}
-.btn-secondary{background:#e2e8f0;color:#1e293b;}
-.btn-secondary:hover{background:#cbd5e1;}
-.btn-success{background:#10b981;color:white;}
-.btn-success:hover{background:#059669;}
-.btn-danger{background:#ef4444;color:white;}
-.btn-danger:hover{background:#dc2626;}
-.btn:disabled{opacity:.45;cursor:not-allowed !important;}
-.btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
-
-/* ===== PROGRESS / STATUS ===== */
-.status{
-  margin-top:10px;padding:10px 14px;border-radius:8px;
-  font-size:13px;display:none;
+.browse-btn:hover{background:#4338ca;}
+.drop-divider{color:#cbd5e1;font-size:13px;margin:18px 0;}
+.yt-row{display:flex;gap:8px;max-width:460px;margin:0 auto;}
+.yt-input{
+  flex:1;padding:9px 14px;border:1.5px solid #e2e8f0;border-radius:8px;
+  font-size:14px;outline:none;
 }
-.status.info{display:block;background:#eff6ff;color:#2563eb;}
-.status.success{display:block;background:#f0fdf4;color:#16a34a;}
-.status.error{display:block;background:#fef2f2;color:#dc2626;}
-.progress-bar{height:6px;background:#e2e8f0;border-radius:3px;margin-top:10px;overflow:hidden;display:none;}
-.progress-bar.show{display:block;}
-.progress-fill{height:100%;background:#4f46e5;border-radius:3px;transition:width .4s;}
-
-/* ===== VIDEO ===== */
-#videoPreview{margin-top:14px;display:none;}
-#videoPreview video,#videoPreview iframe{
-  width:100%;max-height:360px;border-radius:8px;
-  border:1.5px solid #e2e8f0;
+.yt-input:focus{border-color:#4f46e5;}
+.yt-btn{
+  padding:9px 16px;background:#e2e8f0;border:none;border-radius:8px;
+  font-size:13px;font-weight:700;cursor:pointer;color:#1e293b;
+  white-space:nowrap;
 }
+.yt-btn:hover{background:#cbd5e1;}
 
-/* ===== TRANSCRIPT ===== */
+/* ── PROGRESS ── */
+.progress-wrap{padding:10px 0;}
+.progress-step{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 0;border-bottom:1px solid #f1f5f9;
+}
+.progress-step:last-child{border-bottom:none;}
+.step-icon{
+  width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+  background:#f1f5f9;
+}
+.step-icon.active{background:#eef2ff;}
+.step-icon.done{background:#dcfce7;}
+.step-info{flex:1;min-width:0;}
+.step-label{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:4px;}
+.step-sub{font-size:12px;color:#94a3b8;}
+.step-bar{height:5px;background:#f1f5f9;border-radius:3px;overflow:hidden;margin-top:6px;}
+.step-fill{height:100%;background:#4f46e5;border-radius:3px;transition:width .5s ease;width:0%;}
+.step-fill.done{background:#10b981;}
+.step-tick{font-size:18px;color:#10b981;margin-left:6px;display:none;}
+
+/* ── EDITOR TOOLBAR ── */
+.toolbar{
+  display:flex;align-items:center;flex-wrap:wrap;gap:8px;
+  padding:14px 0;border-bottom:1.5px solid #f1f5f9;margin-bottom:16px;
+}
+.tool-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:8px 14px;border:1.5px solid #e2e8f0;border-radius:9px;
+  font-size:13px;font-weight:600;cursor:pointer;background:white;
+  color:#475569;transition:all .15s;
+}
+.tool-btn:hover{border-color:#a5b4fc;color:#4f46e5;background:#f5f3ff;}
+.tool-btn.active{background:#4f46e5;color:white;border-color:#4f46e5;}
+.tool-btn.primary{background:#4f46e5;color:white;border-color:#4f46e5;}
+.tool-btn.primary:hover{background:#4338ca;border-color:#4338ca;}
+.tool-btn.share{background:#10b981;color:white;border-color:#10b981;}
+.tool-btn.share:hover{background:#059669;border-color:#059669;}
+.tool-btn:disabled{opacity:.45;cursor:not-allowed;}
+.toolbar-spacer{flex:1;}
+
+/* ── TRANSCRIPT ── */
 .transcript-help{
-  font-size:13px;color:#475569;background:#f8fafc;
-  padding:8px 12px;border-radius:6px;margin-bottom:12px;
+  font-size:13px;color:#64748b;background:#f8fafc;
+  padding:8px 12px;border-radius:7px;margin-bottom:14px;
 }
-#transcriptContainer{
-  font-size:17px;line-height:2.1;
-  min-height:80px;
+.transcript-text{
+  font-size:17px;line-height:2.3;min-height:100px;
 }
-.sentence-row{
-  margin-bottom:6px;padding:4px 6px;
-  border-radius:6px;
-  transition:background .2s;
+.sentence-row{padding:2px 0;}
+
+/* Word tokens */
+.word{
+  display:inline;padding:1px 1px;border-radius:3px;
+  cursor:default;transition:background .1s;
 }
-.sentence-row.edit-mode .word-token:hover{
-  background:#fde68a;cursor:pointer;border-radius:3px;
+.word.gap-mode{cursor:pointer;}
+.word.gap-mode:hover{background:#fde68a;}
+.word.is-gap{
+  display:inline-block;
+  border-bottom:2.5px solid #4f46e5;
+  min-width:60px;text-align:center;
+  background:transparent;color:transparent;
+  margin:0 2px;vertical-align:middle;
+  cursor:pointer;
 }
-.word-token{
-  display:inline;padding:1px 2px;
-  border-radius:3px;transition:background .15s;
-  user-select:none;
-}
-.word-token.is-gap{display:none;}
-.time-marker{
-  display:inline-block;font-size:10px;
+.word.is-gap:hover{border-bottom-color:#ef4444;}
+.time-pill{
+  display:inline-block;font-size:10px;font-weight:700;
   background:#e0e7ff;color:#4f46e5;
-  padding:1px 6px;border-radius:10px;
-  margin-right:6px;cursor:pointer;font-weight:700;
-  vertical-align:middle;
+  padding:1px 7px;border-radius:10px;margin-right:6px;
+  cursor:pointer;vertical-align:middle;
 }
-.time-marker:hover{background:#c7d2fe;}
+.time-pill:hover{background:#c7d2fe;}
 
-/* ===== GAP INPUTS ===== */
-.gap-wrap{display:inline-block;vertical-align:middle;margin:0 3px;}
-.gap-input-field{
-  width:130px;height:28px;border:none;
-  border-bottom:2px solid #4f46e5;
-  font-size:15px;text-align:center;
-  outline:none;background:transparent;
+/* Text edit mode */
+.text-edit-area{
+  width:100%;min-height:180px;font-size:16px;line-height:1.7;
+  border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;
+  outline:none;resize:vertical;
+  font-family:inherit;
 }
-.gap-input-field:focus{border-bottom-color:#10b981;}
-.gap-input-field.correct{border-bottom-color:#16a34a;background:#f0fdf4;}
-.gap-input-field.incorrect{border-bottom-color:#dc2626;background:#fef2f2;}
+.text-edit-area:focus{border-color:#4f46e5;}
+.edit-hint{font-size:12px;color:#94a3b8;margin-top:6px;}
 
-/* ===== LEVEL ROW ===== */
-.level-row{
-  display:flex;align-items:center;gap:12px;
-  flex-wrap:wrap;margin-bottom:14px;
+/* ── GAP INPUT (student view) ── */
+.gap-wrap{display:inline-block;vertical-align:middle;margin:0 2px;}
+.gap-input{
+  border:none;border-bottom:2px solid #4f46e5;
+  width:110px;font-size:16px;text-align:center;
+  background:transparent;outline:none;padding:2px 4px;
 }
-.level-row label{margin:0;font-size:14px;}
-.level-row select{width:auto;min-width:120px;}
+.gap-input:focus{border-bottom-color:#10b981;}
+.gap-input.correct{border-bottom-color:#16a34a;background:#f0fdf4;}
+.gap-input.incorrect{border-bottom-color:#dc2626;background:#fef2f2;}
 
-/* ===== EXPORT ===== */
-#exportBox{
-  word-break:break-all;font-size:12px;
-  background:#f8fafc;border:1.5px solid #e2e8f0;
-  border-radius:6px;padding:10px;
-  margin-top:10px;display:none;
+/* ── STATUS BAR ── */
+.status-bar{
+  display:none;padding:10px 14px;border-radius:8px;
+  font-size:13px;font-weight:600;margin-top:12px;
+}
+.status-bar.info{display:flex;align-items:center;gap:8px;background:#eff6ff;color:#2563eb;}
+.status-bar.success{display:flex;align-items:center;gap:8px;background:#f0fdf4;color:#16a34a;}
+.status-bar.error{display:flex;align-items:center;gap:8px;background:#fef2f2;color:#dc2626;}
+
+/* ── SHARE MODAL ── */
+.modal-backdrop{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.45);z-index:100;
+  align-items:center;justify-content:center;
+}
+.modal-backdrop.open{display:flex;}
+.modal{
+  background:white;border-radius:16px;
+  padding:28px;width:min(520px,92vw);
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+.modal h3{font-size:18px;font-weight:800;margin-bottom:6px;color:#1e1b4b;}
+.modal p{font-size:14px;color:#64748b;margin-bottom:14px;}
+.link-box{
+  display:flex;align-items:center;gap:8px;
+}
+.link-input{
+  flex:1;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;
+  font-size:12px;font-family:monospace;color:#475569;background:#f8fafc;
+  outline:none;overflow:hidden;text-overflow:ellipsis;
+}
+.copy-btn{
+  padding:9px 16px;background:#4f46e5;color:white;border:none;
+  border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;
+  white-space:nowrap;
+}
+.copy-btn:hover{background:#4338ca;}
+.modal-close{
+  margin-top:16px;width:100%;padding:10px;background:#f1f5f9;
+  border:none;border-radius:8px;font-size:14px;font-weight:600;
+  cursor:pointer;color:#475569;
 }
 
-/* ===== STUDENT VIEW ===== */
-#studentView{display:none;}
-#studentView .card{border:2px solid #e0e7ff;}
-
-/* ===== RESPONSIVE ===== */
-@media(max-width:600px){
-  .steps{gap:2px;}
-  .step-label{display:none;}
-  .step-line{width:14px;}
+/* ── STUDENT PREVIEW ── */
+#studentPhase .card{border:2px solid #e0e7ff;}
+.student-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;flex-wrap:wrap;gap:8px;
 }
+.student-back{
+  padding:8px 16px;background:#f1f5f9;border:none;border-radius:8px;
+  font-size:13px;font-weight:700;cursor:pointer;color:#475569;
+}
+.student-back:hover{background:#e2e8f0;}
+.student-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.check-btn{
+  padding:9px 20px;background:#4f46e5;color:white;border:none;
+  border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;
+}
+.reveal-btn{
+  padding:9px 20px;background:#e2e8f0;color:#64748b;border:none;
+  border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;
+}
+.reveal-btn.enabled{background:#10b981;color:white;cursor:pointer;}
+.score-display{font-size:16px;font-weight:800;color:#1e1b4b;margin-top:12px;}
+
+/* ── VIDEO AREA ── */
+#videoArea{
+  margin-bottom:16px;border-radius:10px;overflow:hidden;
+  background:#000;display:none;
+}
+#videoArea video,#videoArea iframe{
+  width:100%;max-height:320px;display:block;
+}
+
+/* ── UTILS ── */
+.hidden{display:none!important;}
+.spin{display:inline-block;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
-<div class="container">
+<div class="app">
 
-  <h1>🎧 AI Exercise Builder</h1>
-  <p class="subtitle">Upload a video → Transcribe → AI generates gap-fill exercises</p>
+  <!-- HEADER -->
+  <header>
+    <div class="brand">🎧 <span>Exercise</span> Builder</div>
+    <div class="type-toggle">
+      <button class="type-btn active" id="typeTranscript" onclick="setExerciseType('transcript')">📝 Transcript</button>
+      <button class="type-btn" id="typeSummary" onclick="setExerciseType('summary')">📋 Summary</button>
+    </div>
+    <select class="level-select" id="levelSelect">
+      <option value="A1">A1 — Beginner</option>
+      <option value="A2">A2 — Elementary</option>
+      <option value="B1" selected>B1 — Intermediate</option>
+      <option value="B2">B2 — Upper-Int</option>
+      <option value="C1">C1 — Advanced</option>
+    </select>
+  </header>
 
-  <!-- STEPPER -->
-  <div class="steps" id="stepper">
-    <div class="step-item">
-      <div class="step-dot active" id="dot1">1</div>
-      <span class="step-label">Video</span>
-    </div>
-    <div class="step-line" id="line1"></div>
-    <div class="step-item">
-      <div class="step-dot" id="dot2">2</div>
-      <span class="step-label">Upload</span>
-    </div>
-    <div class="step-line" id="line2"></div>
-    <div class="step-item">
-      <div class="step-dot" id="dot3">3</div>
-      <span class="step-label">Transcribe</span>
-    </div>
-    <div class="step-line" id="line3"></div>
-    <div class="step-item">
-      <div class="step-dot" id="dot4">4</div>
-      <span class="step-label">Gap Fill</span>
-    </div>
-    <div class="step-line" id="line4"></div>
-    <div class="step-item">
-      <div class="step-dot" id="dot5">5</div>
-      <span class="step-label">Export</span>
+  <!-- ═══════════════════════════════════════ -->
+  <!-- PHASE 1: UPLOAD                         -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="uploadPhase">
+    <div class="drop-zone" id="dropZone"
+      ondragover="onDragOver(event)"
+      ondragleave="onDragLeave(event)"
+      ondrop="onDrop(event)"
+      onclick="document.getElementById('fileInput').click()">
+
+      <div class="drop-icon">🎬</div>
+      <div class="drop-title">Drop your video or audio here</div>
+      <div class="drop-sub">MP4 · MOV · MKV · MP3 · M4A · WAV supported</div>
+      <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('fileInput').click()">
+        📁 Browse files
+      </button>
+      <input type="file" id="fileInput" accept="video/*,audio/*" style="display:none" onchange="onFileSelected(event)">
+
+      <div class="drop-divider">— or paste a YouTube / direct video URL —</div>
+      <div class="yt-row" onclick="event.stopPropagation()">
+        <input class="yt-input" type="url" id="urlInput" placeholder="https://youtube.com/watch?v=... or https://cdn.example.com/video.mp4">
+        <button class="yt-btn" onclick="onUrlSubmit()">▶ Use URL</button>
+      </div>
     </div>
   </div>
 
-  <!-- ===== STEP 1: VIDEO URL ===== -->
-  <div class="card" id="card1">
-    <div class="card-title">📹 Step 1 — Video Source</div>
-    <label>Paste a video URL (YouTube, BunnyCDN, or direct .mp4)</label>
-    <input type="url" id="videoUrlInput" placeholder="https://...">
-    <div class="btn-row">
-      <button class="btn btn-secondary" onclick="pickLocalFile()">📁 Or upload a file</button>
-      <input type="file" id="localFileInput" accept="video/*,audio/*" onchange="onFileChosen(event)">
-      <button class="btn btn-primary" id="loadVideoBtn" onclick="loadVideo()">Load Video →</button>
-    </div>
-    <div class="status" id="status1"></div>
-    <div id="videoPreview">
-      <!-- video/YT embed inserted here -->
+  <!-- ═══════════════════════════════════════ -->
+  <!-- PHASE 2: PROCESSING                     -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="processPhase" class="hidden">
+    <div class="card">
+      <div class="progress-wrap">
+
+        <div class="progress-step" id="stepUpload">
+          <div class="step-icon" id="iconUpload">⬆️</div>
+          <div class="step-info">
+            <div class="step-label" id="labelUpload">Uploading video…</div>
+            <div class="step-sub" id="subUpload">Sending to CDN</div>
+            <div class="step-bar"><div class="step-fill" id="fillUpload"></div></div>
+          </div>
+          <div class="step-tick" id="tickUpload">✅</div>
+        </div>
+
+        <div class="progress-step" id="stepTranscribe">
+          <div class="step-icon" id="iconTranscribe">🎙️</div>
+          <div class="step-info">
+            <div class="step-label" id="labelTranscribe">Transcribing audio…</div>
+            <div class="step-sub" id="subTranscribe">Waiting for upload to finish</div>
+            <div class="step-bar"><div class="step-fill" id="fillTranscribe"></div></div>
+          </div>
+          <div class="step-tick" id="tickTranscribe">✅</div>
+        </div>
+
+        <div class="progress-step hidden" id="stepSummary">
+          <div class="step-icon" id="iconSummary">🧠</div>
+          <div class="step-info">
+            <div class="step-label" id="labelSummary">Generating summary…</div>
+            <div class="step-sub" id="subSummary">AI is summarising the transcript</div>
+            <div class="step-bar"><div class="step-fill" id="fillSummary"></div></div>
+          </div>
+          <div class="step-tick" id="tickSummary">✅</div>
+        </div>
+
+      </div>
+      <div class="status-bar" id="processStatus"></div>
     </div>
   </div>
 
-  <!-- ===== STEP 2: BUNNY UPLOAD ===== -->
-  <div class="card locked" id="card2">
-    <div class="card-title">⬆️ Step 2 — Upload to CDN</div>
-    <p style="font-size:14px;color:#64748b;margin:0 0 10px">
-      If you chose a local file, upload it to our CDN so AssemblyAI can access it.
-      Skip this step if you already have a public URL.
-    </p>
-    <div class="btn-row">
-      <button class="btn btn-primary" id="uploadBtn" onclick="uploadToBunny()">⬆️ Upload</button>
-      <button class="btn btn-secondary" onclick="skipUpload()">Skip (already have URL)</button>
+  <!-- ═══════════════════════════════════════ -->
+  <!-- PHASE 3: EDITOR                         -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="editorPhase" class="hidden">
+    <div class="card">
+
+      <!-- Collapsed video player -->
+      <div id="videoArea"></div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <button class="tool-btn" id="editTextBtn" onclick="toggleTextEdit()" title="Fix AI errors in the text">
+          ✏️ Edit Text
+        </button>
+        <button class="tool-btn" id="gapModeBtn" onclick="toggleGapMode()" title="Click words to toggle gaps">
+          🎯 Edit Gaps
+        </button>
+        <button class="tool-btn" onclick="clearAllGaps()" title="Remove all gaps">
+          🗑 Clear Gaps
+        </button>
+        <div class="toolbar-spacer"></div>
+        <button class="tool-btn primary" id="makeBtn" onclick="makeItHappen()">
+          ✨ Make it happen
+        </button>
+        <button class="tool-btn share" onclick="openShareModal()">
+          🔗 Share
+        </button>
+        <button class="tool-btn" onclick="previewAsStudent()" title="Preview what students see">
+          👁 Preview
+        </button>
+        <button class="tool-btn" onclick="resetToUpload()" title="Start over with a new video" style="color:#ef4444;border-color:#fecaca;">
+          ✕ New video
+        </button>
+      </div>
+
+      <!-- Help text -->
+      <div class="transcript-help" id="transcriptHelp">
+        💡 Tap any word to mark it as a gap — or click <b>✨ Make it happen</b> to let AI choose.
+      </div>
+
+      <!-- Transcript / text edit area -->
+      <div id="transcriptContainer" class="transcript-text"></div>
+      <textarea id="textEditArea" class="text-edit-area hidden" placeholder="Edit the text here, then click Save…"></textarea>
+      <div class="edit-hint hidden" id="editHint">Edit the text to fix any transcription errors, then click <b>Save Text</b>.</div>
+      <div class="hidden" id="saveTextRow" style="margin-top:10px;display:flex;gap:8px;">
+        <button class="tool-btn primary" onclick="saveTextEdit()">💾 Save Text</button>
+        <button class="tool-btn" onclick="cancelTextEdit()">Cancel</button>
+      </div>
+
+      <div class="status-bar" id="editorStatus"></div>
     </div>
-    <div class="progress-bar" id="uploadProgress">
-      <div class="progress-fill" id="uploadFill" style="width:0%"></div>
-    </div>
-    <div class="status" id="status2"></div>
   </div>
 
-  <!-- ===== STEP 3: TRANSCRIBE ===== -->
-  <div class="card locked" id="card3">
-    <div class="card-title">🎙️ Step 3 — Transcribe</div>
-    <p style="font-size:14px;color:#64748b;margin:0 0 10px">
-      Send the audio to AssemblyAI for word-level transcription.
-    </p>
-    <div class="btn-row">
-      <button class="btn btn-primary" id="transcribeBtn" onclick="startTranscription()">🎙️ Transcribe</button>
+  <!-- ═══════════════════════════════════════ -->
+  <!-- PHASE 4: STUDENT PREVIEW                -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="studentPhase" class="hidden">
+    <div class="card">
+      <div class="student-header">
+        <button class="student-back" onclick="closeStudentPreview()">← Back to editor</button>
+        <div class="student-actions">
+          <button class="check-btn" onclick="checkStudentAnswers()">✅ Check Answers</button>
+          <button class="reveal-btn" id="revealBtn" onclick="revealAnswers()">Reveal</button>
+        </div>
+      </div>
+      <div id="studentContent" style="font-size:17px;line-height:2.3;"></div>
+      <div class="score-display" id="scoreDisplay"></div>
     </div>
-    <div class="progress-bar" id="transcribeProgress">
-      <div class="progress-fill" id="transcribeFill" style="width:0%"></div>
-    </div>
-    <div class="status" id="status3"></div>
   </div>
 
-  <!-- ===== STEP 4: GAP FILL ===== -->
-  <div class="card locked" id="card4">
-    <div class="card-title">✨ Step 4 — Create Gap Fill Exercise</div>
+</div><!-- /app -->
 
-    <!-- Level + Exercise Type -->
-    <div class="level-row">
-      <label for="levelSelect">Level:</label>
-      <select id="levelSelect">
-        <option value="A1">A1 – Beginner</option>
-        <option value="A2">A2 – Elementary</option>
-        <option value="B1" selected>B1 – Intermediate</option>
-        <option value="B2">B2 – Upper-Intermediate</option>
-        <option value="C1">C1 – Advanced</option>
-      </select>
+<!-- ── SHARE MODAL ── -->
+<div class="modal-backdrop" id="shareModal">
+  <div class="modal">
+    <h3>🔗 Share with Students</h3>
+    <p>Students open this link to complete the exercise. No login required.</p>
+    <div class="link-box">
+      <input class="link-input" id="shareUrl" readonly>
+      <button class="copy-btn" onclick="copyShareLink()">📋 Copy</button>
     </div>
-
-    <div class="level-row">
-      <label for="exerciseType">Exercise type:</label>
-      <select id="exerciseType" onchange="onExerciseTypeChange()">
-        <option value="transcript" selected>Transcript Gap Fill</option>
-        <option value="summary">Summary Gap Fill</option>
-      </select>
-    </div>
-
-    <!-- Help text -->
-    <div class="transcript-help" id="transcriptHelp">
-      💡 <b>Tap or click any word</b> to mark it as a gap. Or click "Make it happen" to let AI do it.
-    </div>
-
-    <!-- Edit mode toggle -->
-    <div class="btn-row" style="margin-bottom:10px;">
-      <button class="btn btn-secondary" id="editModeBtn" onclick="toggleEditMode()">✏️ Edit Mode: OFF</button>
-      <button class="btn btn-secondary" onclick="clearAllGaps()">🗑️ Clear All Gaps</button>
-    </div>
-
-    <!-- Transcript display -->
-    <div id="transcriptContainer">
-      <p style="color:#94a3b8;font-size:14px;">Transcript will appear here after transcription.</p>
-    </div>
-
-    <!-- Make it happen -->
-    <div class="btn-row" style="margin-top:16px;">
-      <button class="btn btn-primary" id="makeBtn" onclick="makeItHappen()">✨ Make it happen</button>
-    </div>
-    <div class="status" id="status4"></div>
+    <button class="modal-close" onclick="closeShareModal()">Close</button>
   </div>
-
-  <!-- ===== STEP 5: EXPORT ===== -->
-  <div class="card locked" id="card5">
-    <div class="card-title">📤 Step 5 — Export Student Exercise</div>
-    <div class="btn-row">
-      <button class="btn btn-success" onclick="generateExport()">🔗 Generate Student Link</button>
-      <button class="btn btn-secondary" onclick="saveJSON()">💾 Save as JSON</button>
-      <button class="btn btn-primary" onclick="previewStudent()">👁 Preview as Student</button>
-    </div>
-    <div id="exportBox"></div>
-    <div class="status" id="status5"></div>
-  </div>
-
-  <!-- ===== STUDENT VIEW (shown when previewing) ===== -->
-  <div id="studentView" class="card">
-    <div class="card-title">🎓 Student View Preview</div>
-    <button class="btn btn-secondary" onclick="closeStudentView()" style="margin-bottom:12px;">← Back to Builder</button>
-    <div id="studentContent"></div>
-    <div class="btn-row" style="margin-top:14px;">
-      <button class="btn btn-primary" onclick="checkStudentAnswers()">✅ Check Answers</button>
-      <button class="btn btn-secondary" id="revealBtn" disabled onclick="revealAnswers()">Reveal Answers</button>
-    </div>
-    <p id="studentResult" style="font-size:16px;font-weight:700;margin-top:10px;"></p>
-  </div>
-
-</div><!-- /container -->
+</div>
 
 <script>
-// =============================================
+// ═══════════════════════════════════════════════
 // ⚙️ CONFIG
-// =============================================
+// ═══════════════════════════════════════════════
 const WORKER = "https://gapfill-ai-v2.williamspowerlifting.workers.dev";
 
-// =============================================
-// 🌍 GLOBAL STATE
-// =============================================
-let sentences = [];         // [{words:[{text,time,isGap}], startTime, endTime, originalText}]
-let summaryText = "";
-let usingSummaryMode = false;
-let editMode = false;
-
-let videoUrl = "";          // final URL used for transcription
-let localFile = null;       // File object if user picked a local file
-let bunnyGuid = "";         // Bunny CDN video GUID
-let transcriptJobId = "";   // AssemblyAI job ID
+// ═══════════════════════════════════════════════
+// 🌍 STATE
+// ═══════════════════════════════════════════════
+let exerciseType = "transcript";  // "transcript" | "summary"
+let sentences    = [];            // [{words:[{text,time,isGap}], startTime, endTime, originalText}]
+let summaryText  = "";
+let rawTranscriptText = "";
+let videoUrl     = "";            // final URL for student player
+let gapMode      = false;         // words clickable to toggle gaps
+let textEditMode = false;
+let studentAnswersMap = {};
+let hasChecked   = false;
 let pollInterval = null;
 
-let ytPlayer = null;
-let ytReady = false;
-let stopTimer = null;
+// ═══════════════════════════════════════════════
+// 🎬 EXERCISE TYPE
+// ═══════════════════════════════════════════════
+function setExerciseType(type) {
+  exerciseType = type;
+  document.getElementById("typeTranscript").classList.toggle("active", type === "transcript");
+  document.getElementById("typeSummary").classList.toggle("active", type === "summary");
 
-let studentAnswersMap = {}; // {id: correctAnswer}
-let hasStudentChecked = false;
-
-// =============================================
-// 🔢 STEP MANAGEMENT
-// =============================================
-let currentStep = 1;
-
-function advanceToStep(n) {
-  currentStep = n;
-  for (let i = 1; i <= 5; i++) {
-    const card = document.getElementById("card" + i);
-    const dot = document.getElementById("dot" + i);
-    const line = document.getElementById("line" + i);
-
-    if (i < n) {
-      card.classList.add("locked");
-      dot.classList.remove("active");
-      dot.classList.add("done");
-      dot.textContent = "✓";
-      if (line) line.classList.add("done");
-    } else if (i === n) {
-      card.classList.remove("locked");
-      dot.classList.add("active");
-      dot.classList.remove("done");
-      dot.textContent = i;
-    } else {
-      card.classList.add("locked");
-      dot.classList.remove("active", "done");
-      dot.textContent = i;
+  // If already have a transcript, switch mode live
+  if (sentences.length || summaryText) {
+    if (type === "summary" && rawTranscriptText) {
+      runSummary(rawTranscriptText);
+    } else if (type === "transcript" && rawTranscriptText) {
+      buildSentencesFromText(rawTranscriptText, null);
+      renderTranscript();
+      showPhase("editorPhase");
     }
   }
-  // Allow previous steps to be re-accessed
-  for (let i = 1; i < n; i++) {
-    document.getElementById("card" + i).classList.remove("locked");
-  }
-  // Scroll to card
-  const target = document.getElementById("card" + n);
-  if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+  updateHelp();
 }
 
-function setStatus(cardNum, msg, type) {
-  const el = document.getElementById("status" + cardNum);
-  el.className = "status " + (type || "info");
-  el.textContent = msg;
-}
-
-function clearStatus(cardNum) {
-  const el = document.getElementById("status" + cardNum);
-  el.className = "status";
-}
-
-// =============================================
-// 📹 STEP 1 — VIDEO
-// =============================================
-function pickLocalFile() {
-  document.getElementById("localFileInput").click();
-}
-
-function onFileChosen(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  localFile = file;
-  videoUrl = "";
-  document.getElementById("videoUrlInput").value = "";
-  setStatus(1, `📁 File selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)} MB)`, "success");
-}
-
-function loadVideo() {
-  const inputUrl = document.getElementById("videoUrlInput").value.trim();
-
-  if (localFile && !inputUrl) {
-    // Local file selected - show video preview
-    const preview = document.getElementById("videoPreview");
-    preview.style.display = "block";
-    const objectUrl = URL.createObjectURL(localFile);
-    preview.innerHTML = `<video controls src="${objectUrl}"></video>`;
-    setStatus(1, "✅ Local file ready — proceed to upload in Step 2.", "success");
-    advanceToStep(2);
-    return;
-  }
-
-  if (!inputUrl) {
-    setStatus(1, "Please enter a video URL or choose a local file.", "error");
-    return;
-  }
-
-  videoUrl = inputUrl;
-  localFile = null;
-
-  const preview = document.getElementById("videoPreview");
-  preview.style.display = "block";
-
-  if (inputUrl.includes("youtube") || inputUrl.includes("youtu.be")) {
-    const ytId = getYTId(inputUrl);
-    if (!ytId) {
-      setStatus(1, "Could not extract YouTube video ID.", "error");
-      return;
-    }
-    preview.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}" frameborder="0" allowfullscreen></iframe>`;
+function updateHelp() {
+  const help = document.getElementById("transcriptHelp");
+  if (!help) return;
+  if (exerciseType === "summary") {
+    help.innerHTML = "💡 This is an AI-generated <b>summary</b>. Edit it to fix errors, then click words to add gaps or use <b>✨ Make it happen</b>.";
   } else {
-    preview.innerHTML = `<video controls><source src="${inputUrl}"></video>`;
+    help.innerHTML = "💡 Tap any word to mark it as a gap — or click <b>✨ Make it happen</b> to let AI choose.";
   }
-
-  setStatus(1, "✅ Video loaded — Skip upload (Step 2), go straight to transcription.", "success");
-  advanceToStep(2);
 }
 
-function getYTId(url) {
-  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([^&?]+)/);
-  return m ? m[1] : null;
+// ═══════════════════════════════════════════════
+// 📁 FILE DROP / SELECT
+// ═══════════════════════════════════════════════
+function onDragOver(e) {
+  e.preventDefault();
+  document.getElementById("dropZone").classList.add("dragover");
+}
+function onDragLeave(e) {
+  document.getElementById("dropZone").classList.remove("dragover");
+}
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById("dropZone").classList.remove("dragover");
+  const file = e.dataTransfer?.files?.[0];
+  if (file) startFileFlow(file);
+}
+function onFileSelected(e) {
+  const file = e.target.files?.[0];
+  if (file) startFileFlow(file);
+}
+function onUrlSubmit() {
+  const url = document.getElementById("urlInput").value.trim();
+  if (!url) return;
+  videoUrl = url;
+  startUrlFlow(url);
 }
 
-// =============================================
-// ⬆️ STEP 2 — BUNNY UPLOAD
-// =============================================
-function skipUpload() {
-  if (!videoUrl) {
-    setStatus(2, "No URL set. Please go back to Step 1.", "error");
-    return;
+// ═══════════════════════════════════════════════
+// 🔄 FLOW: LOCAL FILE
+// ═══════════════════════════════════════════════
+async function startFileFlow(file) {
+  showPhase("processPhase");
+
+  // Show upload + transcribe steps, maybe summary
+  setStepState("stepUpload", "active");
+  setStepState("stepTranscribe", "waiting");
+  if (exerciseType === "summary") {
+    document.getElementById("stepSummary").classList.remove("hidden");
+    setStepState("stepSummary", "waiting");
+  } else {
+    document.getElementById("stepSummary").classList.add("hidden");
   }
-  advanceToStep(3);
-}
-
-async function uploadToBunny() {
-  if (!localFile) {
-    setStatus(2, "No local file selected. Go back to Step 1.", "error");
-    return;
-  }
-
-  const btn = document.getElementById("uploadBtn");
-  btn.disabled = true;
-  btn.textContent = "⬆️ Uploading...";
-
-  const progressBar = document.getElementById("uploadProgress");
-  const fill = document.getElementById("uploadFill");
-  progressBar.classList.add("show");
 
   try {
-    // 1. Create Bunny video entry
-    setStatus(2, "Creating video entry...", "info");
-    const createRes = await fetch(WORKER + "/create-bunny-video", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: localFile.name })
-    });
+    // ── Step 1: Upload to Bunny ──
+    fillBar("fillUpload", 10);
+    setStepSub("stepUpload", `${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`);
 
-    if (!createRes.ok) {
-      const err = await createRes.json();
-      throw new Error(err.error || "Failed to create Bunny entry");
+    const cdnUrl = await uploadToBunny(file);
+    videoUrl = cdnUrl;
+    fillBar("fillUpload", 100, true);
+    setStepState("stepUpload", "done");
+    document.getElementById("tickUpload").style.display = "block";
+
+    // ── Step 2: Transcribe ──
+    setStepState("stepTranscribe", "active");
+    fillBar("fillTranscribe", 15);
+    const { words, text } = await transcribeAndPoll(cdnUrl);
+    rawTranscriptText = text;
+    fillBar("fillTranscribe", 100, true);
+    setStepState("stepTranscribe", "done");
+    document.getElementById("tickTranscribe").style.display = "block";
+
+    // ── Step 3: Summary (if needed) ──
+    if (exerciseType === "summary") {
+      setStepState("stepSummary", "active");
+      fillBar("fillSummary", 20);
+      await runSummary(text);
+      fillBar("fillSummary", 100, true);
+      setStepState("stepSummary", "done");
+      document.getElementById("tickSummary").style.display = "block";
+    } else {
+      buildSentencesFromWords(words, text);
     }
 
-    const { guid, cdnHost } = await createRes.json();
-    bunnyGuid = guid;
-    fill.style.width = "20%";
-
-    // 2. Upload the file
-    setStatus(2, "Uploading video... (this may take a while)", "info");
-
-    const uploadRes = await fetch(WORKER + "/upload-bunny-chunk?guid=" + guid, {
-      method: "PUT",
-      body: localFile
-    });
-
-    if (!uploadRes.ok) {
-      const err = await uploadRes.json().catch(() => ({}));
-      throw new Error(err.error || "Upload failed: " + uploadRes.status);
-    }
-
-    fill.style.width = "100%";
-
-    // Build CDN URL for transcription (use MP4 format)
-    videoUrl = `https://${cdnHost}/${guid}/play_720p.mp4`;
-
-    setStatus(2, `✅ Uploaded! CDN URL ready.`, "success");
-    advanceToStep(3);
+    showEditor(cdnUrl);
 
   } catch (err) {
-    setStatus(2, "❌ " + err.message, "error");
+    setProcessStatus(err.message, "error");
   }
-
-  btn.disabled = false;
-  btn.textContent = "⬆️ Upload";
 }
 
-// =============================================
-// 🎙️ STEP 3 — TRANSCRIBE
-// =============================================
-async function startTranscription() {
-  if (!videoUrl) {
-    setStatus(3, "No video URL set. Complete Step 1 first.", "error");
-    return;
+// ═══════════════════════════════════════════════
+// 🔄 FLOW: URL (YouTube or direct)
+// ═══════════════════════════════════════════════
+async function startUrlFlow(url) {
+  showPhase("processPhase");
+
+  // Skip upload step for URL flows
+  setStepState("stepUpload", "done");
+  document.getElementById("tickUpload").style.display = "block";
+  document.getElementById("labelUpload").textContent = "URL provided — no upload needed";
+  document.getElementById("fillUpload").style.width = "100%";
+  document.getElementById("fillUpload").classList.add("done");
+
+  setStepState("stepTranscribe", "active");
+  if (exerciseType === "summary") {
+    document.getElementById("stepSummary").classList.remove("hidden");
+    setStepState("stepSummary", "waiting");
   }
 
-  const btn = document.getElementById("transcribeBtn");
-  btn.disabled = true;
-  btn.textContent = "🎙️ Submitting...";
-
-  const progressBar = document.getElementById("transcribeProgress");
-  const fill = document.getElementById("transcribeFill");
-  progressBar.classList.add("show");
-  fill.style.width = "15%";
-
   try {
-    setStatus(3, "Submitting transcription job...", "info");
+    fillBar("fillTranscribe", 15);
+    const { words, text } = await transcribeAndPoll(url);
+    rawTranscriptText = text;
+    fillBar("fillTranscribe", 100, true);
+    setStepState("stepTranscribe", "done");
+    document.getElementById("tickTranscribe").style.display = "block";
 
-    const res = await fetch(WORKER + "/transcribe", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ audioUrl: videoUrl })
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || "Transcription submit failed: " + res.status);
+    if (exerciseType === "summary") {
+      setStepState("stepSummary", "active");
+      fillBar("fillSummary", 20);
+      await runSummary(text);
+      fillBar("fillSummary", 100, true);
+      setStepState("stepSummary", "done");
+      document.getElementById("tickSummary").style.display = "block";
+    } else {
+      buildSentencesFromWords(words, text);
     }
 
-    const data = await res.json();
-    transcriptJobId = data.jobId;
+    showEditor(url);
 
-    fill.style.width = "25%";
-    setStatus(3, "⏳ Transcribing... (usually 1–3 min)", "info");
+  } catch (err) {
+    setProcessStatus(err.message, "error");
+  }
+}
 
-    // Start polling
+// ═══════════════════════════════════════════════
+// ⬆️ BUNNY UPLOAD
+// ═══════════════════════════════════════════════
+async function uploadToBunny(file) {
+  // 1. Create video entry
+  const createRes = await fetch(WORKER + "/create-bunny-video", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: file.name })
+  });
+  if (!createRes.ok) {
+    const e = await createRes.json().catch(() => ({}));
+    throw new Error("CDN error: " + (e.error || createRes.status));
+  }
+  const { guid, cdnHost } = await createRes.json();
+  fillBar("fillUpload", 35);
+
+  // 2. Upload file body
+  const uploadRes = await fetch(WORKER + "/upload-bunny-chunk?guid=" + guid, {
+    method: "PUT",
+    body: file
+  });
+  if (!uploadRes.ok) {
+    const e = await uploadRes.json().catch(() => ({}));
+    throw new Error("Upload failed: " + (e.error || uploadRes.status));
+  }
+
+  return "https://" + cdnHost + "/" + guid + "/play_720p.mp4";
+}
+
+// ═══════════════════════════════════════════════
+// 🎙️ TRANSCRIPTION
+// ═══════════════════════════════════════════════
+async function transcribeAndPoll(audioUrl) {
+  const submitRes = await fetch(WORKER + "/transcribe", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ audioUrl })
+  });
+  if (!submitRes.ok) {
+    const e = await submitRes.json().catch(() => ({}));
+    throw new Error("Transcription failed: " + (e.error || submitRes.status));
+  }
+  const { jobId } = await submitRes.json();
+
+  return await new Promise((resolve, reject) => {
     let attempts = 0;
-    const maxAttempts = 60; // 5 min max
+    const maxAttempts = 72; // 6 min max
     pollInterval = setInterval(async () => {
       attempts++;
       if (attempts > maxAttempts) {
         clearInterval(pollInterval);
-        setStatus(3, "❌ Transcription timed out. Please try again.", "error");
-        btn.disabled = false;
-        btn.textContent = "🎙️ Transcribe";
+        reject(new Error("Transcription timed out — please try again"));
         return;
       }
-
       try {
-        const pollRes = await fetch(WORKER + "/transcribe-status?jobId=" + transcriptJobId);
-        const pollData = await pollRes.json();
+        const pct = Math.min(15 + attempts * 1.1, 90);
+        fillBar("fillTranscribe", pct);
+        setStepSub("stepTranscribe", `Processing… (${Math.round(attempts * 5 / 60)}m ${(attempts * 5) % 60}s)`);
 
-        // Animate progress
-        const pct = Math.min(25 + attempts * 1.2, 92);
-        fill.style.width = pct + "%";
+        const pollRes = await fetch(WORKER + "/transcribe-status?jobId=" + jobId);
+        const data = await pollRes.json();
 
-        if (pollData.done) {
+        if (data.done) {
           clearInterval(pollInterval);
-          fill.style.width = "100%";
-
-          buildSentencesFromWords(pollData.words, pollData.text);
-          renderTranscript();
-
-          setStatus(3, `✅ Transcribed! ${sentences.length} sentences found.`, "success");
-          advanceToStep(4);
-          btn.disabled = false;
-          btn.textContent = "🎙️ Re-Transcribe";
-
-        } else if (pollData.error) {
+          resolve({ words: data.words || [], text: data.text || "" });
+        } else if (data.error) {
           clearInterval(pollInterval);
-          throw new Error(pollData.error);
-        } else {
-          setStatus(3, `⏳ Status: ${pollData.status || "processing"}...`, "info");
+          reject(new Error(data.error));
         }
-      } catch (pollErr) {
+      } catch (e) {
         clearInterval(pollInterval);
-        setStatus(3, "❌ " + pollErr.message, "error");
-        btn.disabled = false;
-        btn.textContent = "🎙️ Transcribe";
+        reject(e);
       }
     }, 5000);
-
-  } catch (err) {
-    setStatus(3, "❌ " + err.message, "error");
-    btn.disabled = false;
-    btn.textContent = "🎙️ Transcribe";
-  }
+  });
 }
 
-// =============================================
+// ═══════════════════════════════════════════════
+// 🧠 SUMMARY
+// ═══════════════════════════════════════════════
+async function runSummary(transcript) {
+  const res = await fetch(WORKER + "/generate-summary", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ transcript })
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error("Summary failed: " + (e.error || res.status));
+  }
+  const data = await res.json();
+  summaryText = data.summary;
+  buildSentencesFromText(summaryText, null);
+}
+
+// ═══════════════════════════════════════════════
 // 🔤 SENTENCE BUILDING
-// =============================================
+// ═══════════════════════════════════════════════
 function buildSentencesFromWords(words, fullText) {
   if (!words || !words.length) {
-    // Fallback: split full text
-    sentences = splitIntoSentences(fullText).map((text, i) => ({
-      words: text.split(/\s+/).map(w => ({ text: w, time: i * 5, isGap: false })),
-      startTime: i * 5,
-      endTime: (i + 1) * 5,
-      originalText: text
-    }));
+    buildSentencesFromText(fullText, null);
     return;
   }
-
   const result = [];
-  let current = { words: [], startTime: 0, endTime: 0, originalText: "" };
+  let cur = { words: [], startTime: 0, endTime: 0, originalText: "" };
 
   words.forEach((w, idx) => {
-    const wordObj = {
-      text: w.text || w.word || "",
-      time: Math.round((w.start || 0) / 1000),
+    const word = {
+      text:  w.text || w.word || "",
+      time:  Math.round((w.start || 0) / 1000),
       isGap: false
     };
+    if (idx === 0) cur.startTime = word.time;
+    cur.words.push(word);
+    cur.originalText += (cur.originalText ? " " : "") + word.text;
+    cur.endTime = word.time;
 
-    if (idx === 0) current.startTime = wordObj.time;
-
-    current.words.push(wordObj);
-    current.originalText += (current.originalText ? " " : "") + wordObj.text;
-    current.endTime = wordObj.time;
-
-    // Break on sentence-ending punctuation
-    const bare = wordObj.text.replace(/[^a-zA-Z0-9]/g, "");
-    if (/[.!?]$/.test(wordObj.text) && bare.length > 1 && idx < words.length - 1) {
-      result.push({ ...current });
-      current = { words: [], startTime: words[idx + 1] ? Math.round((words[idx + 1].start || 0) / 1000) : 0, endTime: 0, originalText: "" };
+    const clean = word.text.replace(/[^a-zA-Z0-9]/g, "");
+    const nextStart = words[idx + 1] ? Math.round((words[idx + 1].start || 0) / 1000) : 0;
+    if (/[.!?]$/.test(word.text) && clean.length > 1 && idx < words.length - 1) {
+      result.push({ ...cur, words: [...cur.words] });
+      cur = { words: [], startTime: nextStart, endTime: 0, originalText: "" };
     }
   });
 
-  if (current.words.length) result.push(current);
+  if (cur.words.length) result.push(cur);
+  sentences = result.length ? result : [];
+  if (!sentences.length) buildSentencesFromText(fullText, null);
+}
 
-  sentences = result.length ? result : sentences;
+function buildSentencesFromText(text, _) {
+  const parts = splitIntoSentences(text);
+  sentences = parts.map((t, i) => ({
+    words: t.split(/\s+/).filter(Boolean).map(w => ({ text: w, time: i * 5, isGap: false })),
+    startTime: i * 5,
+    endTime:   (i + 1) * 5,
+    originalText: t
+  }));
 }
 
 function splitIntoSentences(text) {
-  const parts = text.match(/[^.!?]+[.!?]*/g) || [];
-  return parts.map(s => s.trim()).filter(Boolean);
+  return (text.match(/[^.!?]+[.!?]*/g) || [text]).map(s => s.trim()).filter(Boolean);
 }
 
-// =============================================
-// 🖥️ TRANSCRIPT RENDERING
-// =============================================
+// ═══════════════════════════════════════════════
+// 🖥 RENDER TRANSCRIPT
+// ═══════════════════════════════════════════════
 function renderTranscript() {
   const container = document.getElementById("transcriptContainer");
   container.innerHTML = "";
 
   sentences.forEach((sentence, si) => {
     const row = document.createElement("div");
-    row.className = "sentence-row" + (editMode ? " edit-mode" : "");
-    row.dataset.si = si;
+    row.className = "sentence-row";
 
     // Timestamp badge
     const badge = document.createElement("span");
-    badge.className = "time-marker";
+    badge.className = "time-pill";
     badge.textContent = formatTime(sentence.startTime);
     badge.onclick = () => seekVideo(sentence.startTime);
     row.appendChild(badge);
 
-    // Words
     sentence.words.forEach((word, wi) => {
       if (word.isGap) {
-        const wrap = document.createElement("span");
-        wrap.className = "gap-wrap";
-
-        const input = document.createElement("input");
-        input.type = "text";
-        input.className = "gap-input-field";
-        input.dataset.si = si;
-        input.dataset.wi = wi;
-        input.dataset.answer = word.text;
-        input.placeholder = word.text.replace(/./g, "_").substring(0, 8);
-
-        wrap.appendChild(input);
-        row.appendChild(wrap);
+        const span = document.createElement("span");
+        span.className = "word is-gap";
+        span.title = "Click to un-gap: " + word.text;
+        span.textContent = word.text;
+        span.dataset.si = si;
+        span.dataset.wi = wi;
+        span.onclick = () => toggleGap(si, wi);
+        row.appendChild(span);
       } else {
         const span = document.createElement("span");
-        span.className = "word-token";
+        span.className = "word" + (gapMode ? " gap-mode" : "");
         span.textContent = word.text + " ";
         span.dataset.si = si;
         span.dataset.wi = wi;
-        if (editMode) {
-          span.onclick = () => toggleGap(si, wi);
-        }
+        if (gapMode) span.onclick = () => toggleGap(si, wi);
         row.appendChild(span);
       }
     });
@@ -717,28 +797,31 @@ function renderTranscript() {
 }
 
 function formatTime(sec) {
+  if (!sec) return "0:00";
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
   return m + ":" + String(s).padStart(2, "0");
 }
 
-// =============================================
-// ✏️ EDIT MODE
-// =============================================
-function toggleEditMode() {
-  if (usingSummaryMode) {
-    alert("Edit mode is disabled in summary mode. Switch back to Transcript mode to edit.");
-    return;
-  }
-  editMode = !editMode;
-  const btn = document.getElementById("editModeBtn");
-  btn.textContent = "✏️ Edit Mode: " + (editMode ? "ON" : "OFF");
-  btn.className = "btn " + (editMode ? "btn-danger" : "btn-secondary");
+// ═══════════════════════════════════════════════
+// ✏️ GAP EDIT MODE
+// ═══════════════════════════════════════════════
+function toggleGapMode() {
+  gapMode = !gapMode;
+  const btn = document.getElementById("gapModeBtn");
+  btn.classList.toggle("active", gapMode);
+  btn.textContent = gapMode ? "🎯 Gap Mode: ON" : "🎯 Edit Gaps";
   renderTranscript();
+  const help = document.getElementById("transcriptHelp");
+  if (gapMode) {
+    help.innerHTML = "🎯 <b>Gap mode ON</b> — click any word to mark it as a gap. Click a gap (underline) to remove it.";
+  } else {
+    updateHelp();
+  }
 }
 
 function toggleGap(si, wi) {
-  if (!sentences[si]) return;
+  if (!sentences[si]?.words[wi]) return;
   sentences[si].words[wi].isGap = !sentences[si].words[wi].isGap;
   renderTranscript();
 }
@@ -746,236 +829,176 @@ function toggleGap(si, wi) {
 function clearAllGaps() {
   sentences.forEach(s => s.words.forEach(w => w.isGap = false));
   renderTranscript();
+  setEditorStatus("All gaps cleared.", "info");
 }
 
-// =============================================
-// 🎯 EXERCISE TYPE CHANGE
-// =============================================
-function onExerciseTypeChange() {
-  const type = document.getElementById("exerciseType").value;
-  const help = document.getElementById("transcriptHelp");
-
-  if (type === "summary") {
-    help.innerHTML = "💡 <b>Summary mode:</b> AI will write a short summary for students to complete. Students watch the full video, then fill the gaps.";
+// ═══════════════════════════════════════════════
+// ✏️ TEXT EDIT MODE
+// ═══════════════════════════════════════════════
+function toggleTextEdit() {
+  if (!textEditMode) {
+    const fullText = sentences.map(s => s.originalText).join(" ");
+    const textarea = document.getElementById("textEditArea");
+    textarea.value = fullText;
+    textarea.classList.remove("hidden");
+    document.getElementById("editHint").classList.remove("hidden");
+    const saveRow = document.getElementById("saveTextRow");
+    saveRow.classList.remove("hidden");
+    saveRow.style.display = "flex";
+    document.getElementById("transcriptContainer").classList.add("hidden");
+    document.getElementById("editTextBtn").classList.add("active");
+    document.getElementById("editTextBtn").textContent = "✏️ Editing…";
+    textEditMode = true;
   } else {
-    help.innerHTML = "💡 <b>Tap or click any word</b> to mark it as a gap. Or click \"Make it happen\" to let AI choose.";
+    cancelTextEdit();
   }
 }
 
-// =============================================
-// 🤖 AI SUMMARY
-// =============================================
-async function generateSummary(transcript) {
-  const res = await fetch(WORKER + "/generate-summary", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ transcript })
-  });
+function saveTextEdit() {
+  const newText = document.getElementById("textEditArea").value.trim();
+  if (!newText) return;
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Summary generation failed");
-  }
+  // Rebuild sentences from edited text (no word-level timestamps preserved)
+  buildSentencesFromText(newText, null);
+  rawTranscriptText = newText;
+  if (exerciseType === "summary") summaryText = newText;
 
-  const data = await res.json();
-  return data.summary;
+  cancelTextEdit();
+  renderTranscript();
+  setEditorStatus("Text saved. Gaps were cleared — re-add or click Make it happen.", "success");
 }
 
-// =============================================
+function cancelTextEdit() {
+  document.getElementById("textEditArea").classList.add("hidden");
+  document.getElementById("editHint").classList.add("hidden");
+  const saveRow = document.getElementById("saveTextRow");
+  saveRow.classList.add("hidden");
+  document.getElementById("transcriptContainer").classList.remove("hidden");
+  document.getElementById("editTextBtn").classList.remove("active");
+  document.getElementById("editTextBtn").textContent = "✏️ Edit Text";
+  textEditMode = false;
+}
+
+// ═══════════════════════════════════════════════
 // ✨ MAKE IT HAPPEN
-// =============================================
+// ═══════════════════════════════════════════════
 async function makeItHappen() {
-  if (!sentences.length) {
-    setStatus(4, "No transcript yet — complete Step 3 first.", "error");
-    return;
-  }
+  if (!sentences.length) { setEditorStatus("No text yet — wait for transcription.", "error"); return; }
 
   const level = document.getElementById("levelSelect").value;
-  const type = document.getElementById("exerciseType").value;
-
   const btn = document.getElementById("makeBtn");
   btn.disabled = true;
-  btn.textContent = "⏳ Working magic...";
+  btn.textContent = "⏳ Working…";
+  clearAllGaps();
 
-  let workingText = sentences.map(s => s.originalText).join(" ");
+  const workingText = sentences.map(s => s.originalText).join(" ");
 
   try {
-    // ========================
-    // 🧠 SUMMARY MODE
-    // ========================
-    if (type === "summary") {
-      usingSummaryMode = true;
-      btn.textContent = "⏳ Generating summary...";
-      setStatus(4, "AI is summarising the transcript...", "info");
-
-      summaryText = await generateSummary(workingText);
-
-      const rawSentences = splitIntoSentences(summaryText);
-
-      sentences = rawSentences.map((text, i) => ({
-        words: text.split(/\s+/).map(w => ({
-          text: w,
-          time: 0,
-          isGap: false
-        })),
-        startTime: i * 5,
-        endTime: (i + 1) * 5,
-        originalText: text
-      }));
-
-      renderTranscript();
-      workingText = summaryText;
-
-    } else {
-      usingSummaryMode = false;
-    }
-
-    btn.textContent = "⏳ Choosing gaps...";
-    setStatus(4, `AI is selecting gaps for ${level} level...`, "info");
-
+    setEditorStatus("AI is choosing gaps for " + level + " level…", "info");
     const res = await fetch(WORKER + "/generate-gaps", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ transcript: workingText, level })
     });
-
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || "Gap generation failed: " + res.status);
+      const e = await res.json().catch(() => ({}));
+      throw new Error(e.error || "Gap generation failed: " + res.status);
     }
-
     const data = await res.json();
     applyAISuggestedGaps(data.sections);
-
-    const gapCount = sentences.reduce((n, s) => n + s.words.filter(w => w.isGap).length, 0);
-    setStatus(4, `✅ Done! ${gapCount} gaps added at ${level} level. Scroll up to review.`, "success");
-
-    // Enable export step
-    advanceToStep(5);
-
+    const count = sentences.reduce((n, s) => n + s.words.filter(w => w.isGap).length, 0);
+    setEditorStatus("✅ Done! " + count + " gaps added at " + level + " level.", "success");
   } catch (err) {
-    setStatus(4, "❌ " + err.message, "error");
+    setEditorStatus("❌ " + err.message, "error");
   }
 
-  btn.textContent = "✨ Make it happen";
   btn.disabled = false;
+  btn.textContent = "✨ Make it happen";
 }
 
-// =============================================
+// ═══════════════════════════════════════════════
 // 🎯 APPLY AI GAPS
-// =============================================
+// ═══════════════════════════════════════════════
 function applyAISuggestedGaps(sections) {
-  if (!sections || !sections.length) return;
-
-  // Reset all gaps first
+  if (!sections?.length) return;
   sentences.forEach(s => s.words.forEach(w => w.isGap = false));
 
-  let sectionIdx = 0;
-
+  let si = 0;
   sentences.forEach(sentence => {
-    if (sectionIdx >= sections.length) return;
-    const section = sections[sectionIdx++];
-    if (!section || !section.answers) return;
-
-    const targets = section.answers.map(a =>
-      a.toLowerCase().replace(/[^a-z0-9']/g, "")
-    );
-
-    // Mark matched words as gaps (first-match-wins per target)
-    const usedTargets = new Set();
+    if (si >= sections.length) return;
+    const section = sections[si++];
+    if (!section?.answers) return;
+    const targets = section.answers.map(a => a.toLowerCase().replace(/[^a-z0-9']/g, ""));
+    const used = new Set();
     sentence.words.forEach(word => {
-      const cleaned = word.text.toLowerCase().replace(/[^a-z0-9']/g, "");
-      const matchIdx = targets.findIndex((t, i) => t === cleaned && !usedTargets.has(i));
-      if (matchIdx >= 0) {
-        word.isGap = true;
-        usedTargets.add(matchIdx);
-      }
+      const clean = word.text.toLowerCase().replace(/[^a-z0-9']/g, "");
+      const idx = targets.findIndex((t, i) => t === clean && !used.has(i));
+      if (idx >= 0) { word.isGap = true; used.add(idx); }
     });
   });
-
   renderTranscript();
 }
 
-// =============================================
+// ═══════════════════════════════════════════════
 // 🎬 VIDEO SEEK
-// =============================================
+// ═══════════════════════════════════════════════
 function seekVideo(sec) {
-  const vid = document.querySelector("#videoPreview video");
-  if (vid) {
-    vid.currentTime = sec;
-    vid.play();
-  }
-  // YT: if ytPlayer is set
-  if (ytPlayer && ytReady) {
-    ytPlayer.seekTo(sec, true);
-    ytPlayer.playVideo();
-  }
+  const vid = document.querySelector("#videoArea video");
+  if (vid) { vid.currentTime = sec; vid.play(); }
 }
 
-// =============================================
-// 📤 STEP 5 — EXPORT
-// =============================================
+// ═══════════════════════════════════════════════
+// 🔗 SHARE
+// ═══════════════════════════════════════════════
+function openShareModal() {
+  const data = collectExerciseData();
+  const encoded = encodeURIComponent(JSON.stringify(data));
+  const link = location.origin + location.pathname + "?data=" + encoded;
+  document.getElementById("shareUrl").value = link;
+  document.getElementById("shareModal").classList.add("open");
+}
+function closeShareModal() {
+  document.getElementById("shareModal").classList.remove("open");
+}
+function copyShareLink() {
+  const url = document.getElementById("shareUrl").value;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.querySelector(".copy-btn");
+    btn.textContent = "✅ Copied!";
+    setTimeout(() => { btn.textContent = "📋 Copy"; }, 2000);
+  });
+}
+
 function collectExerciseData() {
   return {
-    videoUrl: videoUrl,
-    mode: document.getElementById("exerciseType").value,
+    videoUrl,
+    mode: exerciseType,
     level: document.getElementById("levelSelect").value,
-    sections: sentences.map(sentence => ({
-      text: sentence.words.map(w => w.isGap ? "_" : w.text).join(" "),
-      answers: sentence.words.filter(w => w.isGap).map(w => w.text),
-      start: sentence.startTime,
-      end: sentence.endTime
+    sections: sentences.map(s => ({
+      text:    s.words.map(w => w.isGap ? "_" : w.text).join(" "),
+      answers: s.words.filter(w => w.isGap).map(w => w.text),
+      start:   s.startTime,
+      end:     s.endTime
     }))
   };
 }
 
-function generateExport() {
-  const data = collectExerciseData();
-  const encoded = encodeURIComponent(JSON.stringify(data));
-  const link = location.origin + location.pathname + "?data=" + encoded;
-
-  const box = document.getElementById("exportBox");
-  box.style.display = "block";
-  box.innerHTML = `
-    <b>Student Link:</b><br>
-    <a href="${link}" target="_blank">${link.substring(0, 80)}...</a><br><br>
-    <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('${link.replace(/'/g,"\\'")}').then(()=>alert('Copied!'))">📋 Copy Link</button>
-  `;
-
-  setStatus(5, "✅ Link generated!", "success");
-}
-
-function saveJSON() {
-  const data = collectExerciseData();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  let name = prompt("File name:", "exercise");
-  if (!name) name = "exercise";
-  a.download = name.replace(/\.json$/i, "") + ".json";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function previewStudent() {
-  const data = collectExerciseData();
-  buildStudentView(data);
-}
-
-// =============================================
-// 🎓 STUDENT VIEW
-// =============================================
-function buildStudentView(data) {
+// ═══════════════════════════════════════════════
+// 👁 STUDENT PREVIEW
+// ═══════════════════════════════════════════════
+function previewAsStudent() {
   studentAnswersMap = {};
-  hasStudentChecked = false;
+  hasChecked = false;
+  document.getElementById("revealBtn").className = "reveal-btn";
+  document.getElementById("scoreDisplay").textContent = "";
 
-  const content = document.getElementById("studentContent");
-  content.innerHTML = "";
+  const container = document.getElementById("studentContent");
+  container.innerHTML = "";
+  const data = collectExerciseData();
 
   data.sections.forEach((sec, si) => {
     const div = document.createElement("div");
-    div.style.cssText = "font-size:17px;line-height:2.2;margin-bottom:8px;";
+    div.style.marginBottom = "4px";
 
     const parts = sec.text.split(/_+/g);
     parts.forEach((part, i) => {
@@ -985,22 +1008,18 @@ function buildStudentView(data) {
         wrap.className = "gap-wrap";
         const input = document.createElement("input");
         input.type = "text";
-        input.className = "gap-input-field";
-        const id = `sq${si}_${i}`;
+        input.className = "gap-input";
+        const id = "s_" + si + "_" + i;
         input.id = id;
         studentAnswersMap[id] = sec.answers[i] || "";
         wrap.appendChild(input);
         div.appendChild(wrap);
       }
     });
-
-    content.appendChild(div);
+    container.appendChild(div);
   });
 
-  document.getElementById("studentView").style.display = "block";
-  document.getElementById("revealBtn").disabled = true;
-  document.getElementById("studentResult").textContent = "";
-  document.getElementById("studentContent").scrollIntoView({ behavior: "smooth" });
+  showPhase("studentPhase");
 }
 
 function checkStudentAnswers() {
@@ -1008,63 +1027,192 @@ function checkStudentAnswers() {
   Object.keys(studentAnswersMap).forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    const correct = studentAnswersMap[id].toLowerCase().trim();
-    const user = el.value.toLowerCase().trim();
     el.classList.remove("correct", "incorrect");
-    if (user === correct) {
-      el.classList.add("correct");
-      score++;
-    } else {
-      el.classList.add("incorrect");
-    }
+    const correct = studentAnswersMap[id].toLowerCase().trim();
+    const user    = el.value.toLowerCase().trim();
+    if (user === correct) { el.classList.add("correct"); score++; }
+    else el.classList.add("incorrect");
   });
-
   const total = Object.keys(studentAnswersMap).length;
-  document.getElementById("studentResult").textContent =
-    `Score: ${score}/${total} (${Math.round(score / total * 100)}%)`;
-
-  hasStudentChecked = true;
-  const btn = document.getElementById("revealBtn");
-  btn.disabled = false;
+  document.getElementById("scoreDisplay").textContent =
+    "Score: " + score + "/" + total + " (" + Math.round(score / (total || 1) * 100) + "%)";
+  hasChecked = true;
+  document.getElementById("revealBtn").className = "reveal-btn enabled";
 }
 
 function revealAnswers() {
-  if (!hasStudentChecked) return;
+  if (!hasChecked) return;
   Object.keys(studentAnswersMap).forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = studentAnswersMap[id];
   });
 }
 
-function closeStudentView() {
-  document.getElementById("studentView").style.display = "none";
+function closeStudentPreview() {
+  showPhase("editorPhase");
 }
 
-// =============================================
-// 📂 LOAD FROM JSON FILE (accessible via URL param)
-// =============================================
-(function() {
+// ═══════════════════════════════════════════════
+// 🔄 PHASE MANAGEMENT
+// ═══════════════════════════════════════════════
+const PHASES = ["uploadPhase","processPhase","editorPhase","studentPhase"];
+
+function showPhase(id) {
+  PHASES.forEach(p => {
+    const el = document.getElementById(p);
+    if (el) el.classList.toggle("hidden", p !== id);
+  });
+}
+
+function showEditor(url) {
+  // Build video player
+  const area = document.getElementById("videoArea");
+  area.style.display = "block";
+  if (url.includes("youtube") || url.includes("youtu.be")) {
+    const ytId = (url.match(/(?:v=|youtu\.be\/|embed\/)([^&?]+)/) || [])[1];
+    area.innerHTML = ytId
+      ? `<iframe src="https://www.youtube.com/embed/${ytId}" frameborder="0" allowfullscreen></iframe>`
+      : "";
+  } else if (url.startsWith("http")) {
+    area.innerHTML = `<video controls><source src="${url}"></video>`;
+  }
+
+  renderTranscript();
+  updateHelp();
+  showPhase("editorPhase");
+}
+
+function resetToUpload() {
+  if (!confirm("Start over with a new video?")) return;
+  sentences = []; summaryText = ""; rawTranscriptText = "";
+  videoUrl = ""; gapMode = false; textEditMode = false;
+  if (pollInterval) clearInterval(pollInterval);
+  document.getElementById("videoArea").style.display = "none";
+  document.getElementById("videoArea").innerHTML = "";
+  document.getElementById("transcriptContainer").innerHTML = "";
+  document.getElementById("fileInput").value = "";
+  document.getElementById("urlInput").value = "";
+  showPhase("uploadPhase");
+}
+
+// ═══════════════════════════════════════════════
+// 📊 STEP HELPERS
+// ═══════════════════════════════════════════════
+function setStepState(stepId, state) {
+  const icon = document.getElementById(stepId.replace("step","icon"));
+  const label = document.getElementById(stepId.replace("step","label"));
+  if (!icon) return;
+  icon.className = "step-icon " + state;
+}
+function setStepSub(stepId, text) {
+  const sub = document.getElementById(stepId.replace("step","sub"));
+  if (sub) sub.textContent = text;
+}
+function fillBar(fillId, pct, done) {
+  const el = document.getElementById(fillId);
+  if (!el) return;
+  el.style.width = pct + "%";
+  if (done) el.classList.add("done");
+}
+function setProcessStatus(msg, type) {
+  const el = document.getElementById("processStatus");
+  el.className = "status-bar " + type;
+  el.textContent = msg;
+}
+function setEditorStatus(msg, type) {
+  const el = document.getElementById("editorStatus");
+  el.className = "status-bar " + type;
+  el.textContent = msg;
+  if (type === "success" || type === "info") {
+    setTimeout(() => { el.className = "status-bar"; }, 4000);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// 📂 STUDENT MODE (via ?data= URL param)
+// ═══════════════════════════════════════════════
+(function () {
   const params = new URLSearchParams(location.search);
   const raw = params.get("data");
-  if (raw) {
-    try {
-      const data = JSON.parse(decodeURIComponent(raw));
-      // Show as student view immediately
-      document.querySelector(".container").innerHTML =
-        `<h1>🎧 Listening Exercise</h1>
-         <div id="studentView" class="card" style="display:block">
-           <div id="studentContent"></div>
-           <div class="btn-row" style="margin-top:14px;">
-             <button class="btn btn-primary" onclick="checkStudentAnswers()">✅ Check Answers</button>
-             <button class="btn btn-secondary" id="revealBtn" disabled onclick="revealAnswers()">Reveal Answers</button>
-             <button class="btn btn-secondary" onclick="location.href=location.pathname">← Builder</button>
-           </div>
-           <p id="studentResult" style="font-size:16px;font-weight:700;margin-top:10px;"></p>
-         </div>`;
-      buildStudentView(data);
-    } catch (e) {
-      console.error("Invalid data param", e);
-    }
+  if (!raw) return;
+
+  try {
+    const data = JSON.parse(decodeURIComponent(raw));
+
+    // Replace entire app with minimal student UI
+    document.querySelector(".app").innerHTML = `
+      <header style="margin-bottom:18px;">
+        <div class="brand">🎧 <span>Listening</span> Exercise</div>
+      </header>
+      ${data.videoUrl ? (
+        data.videoUrl.includes("youtube") || data.videoUrl.includes("youtu.be")
+          ? `<div style="border-radius:12px;overflow:hidden;margin-bottom:16px;background:#000;">
+               <iframe width="100%" height="320" src="https://www.youtube.com/embed/${(data.videoUrl.match(/(?:v=|youtu\.be\/)([^&?]+)/)||[])[1]}" frameborder="0" allowfullscreen></iframe>
+             </div>`
+          : `<div style="border-radius:12px;overflow:hidden;margin-bottom:16px;background:#000;">
+               <video controls style="width:100%;max-height:300px;display:block;"><source src="${data.videoUrl}"></video>
+             </div>`
+      ) : ""}
+      <div class="card" id="sCard">
+        <div id="sContent" style="font-size:17px;line-height:2.3;"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;">
+          <button class="check-btn" onclick="checkSt()">✅ Check Answers</button>
+          <button class="reveal-btn" id="sReveal" onclick="revealSt()">Reveal</button>
+        </div>
+        <div class="score-display" id="sScore" style="margin-top:10px;"></div>
+      </div>
+    `;
+
+    const map = {};
+    const content = document.getElementById("sContent");
+    data.sections.forEach((sec, si) => {
+      const div = document.createElement("div");
+      div.style.marginBottom = "4px";
+      (sec.text.split(/_+/g)).forEach((part, i, arr) => {
+        div.appendChild(document.createTextNode(part));
+        if (i < arr.length - 1) {
+          const wrap = document.createElement("span");
+          wrap.className = "gap-wrap";
+          const inp = document.createElement("input");
+          inp.type = "text";
+          inp.className = "gap-input";
+          const id = "st_" + si + "_" + i;
+          inp.id = id;
+          map[id] = sec.answers[i] || "";
+          wrap.appendChild(inp);
+          div.appendChild(wrap);
+        }
+      });
+      content.appendChild(div);
+    });
+
+    let checked = false;
+    window.checkSt = () => {
+      let score = 0;
+      Object.keys(map).forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove("correct","incorrect");
+        if (el.value.toLowerCase().trim() === map[id].toLowerCase().trim()) {
+          el.classList.add("correct"); score++;
+        } else el.classList.add("incorrect");
+      });
+      const total = Object.keys(map).length;
+      document.getElementById("sScore").textContent =
+        "Score: " + score + "/" + total + " (" + Math.round(score / (total || 1) * 100) + "%)";
+      checked = true;
+      document.getElementById("sReveal").className = "reveal-btn enabled";
+    };
+    window.revealSt = () => {
+      if (!checked) return;
+      Object.keys(map).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = map[id];
+      });
+    };
+
+  } catch (e) {
+    console.error("Invalid data param", e);
   }
 })();
 </script>
