@@ -514,7 +514,9 @@ function onUrlSubmit() {
 async function startFileFlow(file) {
   showPhase("processPhase");
 
-  // Show upload + transcribe steps, maybe summary
+  // Create a local blob URL for the video preview (works immediately)
+  const blobUrl = URL.createObjectURL(file);
+
   setStepState("stepUpload", "active");
   setStepState("stepTranscribe", "waiting");
   if (exerciseType === "summary") {
@@ -527,10 +529,16 @@ async function startFileFlow(file) {
   try {
     // ── Step 1: Upload to Bunny ──
     fillBar("fillUpload", 10);
-    setStepSub("stepUpload", `${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`);
+    setStepSub("stepUpload", file.name + " (" + (file.size/1024/1024).toFixed(1) + " MB)");
 
-    const cdnUrl = await uploadToBunny(file);
+    const { guid, cdnHost } = await uploadToBunnyGetGuid(file);
+    fillBar("fillUpload", 60);
+
+    // ── Step 1b: Wait for Bunny transcoding to finish ──
+    setStepSub("stepUpload", "Waiting for CDN to process video…");
+    const cdnUrl = await pollBunnyStatus(guid);
     videoUrl = cdnUrl;
+
     fillBar("fillUpload", 100, true);
     setStepState("stepUpload", "done");
     document.getElementById("tickUpload").style.display = "block";
@@ -556,11 +564,54 @@ async function startFileFlow(file) {
       buildSentencesFromWords(words, text);
     }
 
-    showEditor(cdnUrl);
+    // Use blob URL for local video preview; cdnUrl for student sharing
+    showEditor(blobUrl, cdnUrl);
 
   } catch (err) {
     setProcessStatus(err.message, "error");
   }
+}
+
+// Upload to Bunny and return guid + cdnHost (does not wait for transcoding)
+async function uploadToBunnyGetGuid(file) {
+  const createRes = await fetch(WORKER + "/create-bunny-video", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: file.name })
+  });
+  if (!createRes.ok) {
+    const e = await createRes.json().catch(() => ({}));
+    throw new Error("CDN error: " + (e.error || createRes.status));
+  }
+  const { guid, cdnHost } = await createRes.json();
+
+  const uploadRes = await fetch(WORKER + "/upload-bunny-chunk?guid=" + guid, {
+    method: "PUT",
+    body: file
+  });
+  if (!uploadRes.ok) {
+    const e = await uploadRes.json().catch(() => ({}));
+    throw new Error("Upload failed: " + (e.error || uploadRes.status));
+  }
+  return { guid, cdnHost };
+}
+
+// Poll /bunny-status until transcoding is complete (returns cdnUrl)
+async function pollBunnyStatus(guid) {
+  const maxAttempts = 72; // 6 min
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise(r => setTimeout(r, 5000));
+    const res = await fetch(WORKER + "/bunny-status?guid=" + guid);
+    const data = await res.json();
+
+    const pct = Math.min(60 + (i / maxAttempts) * 38, 98);
+    fillBar("fillUpload", pct);
+    setStepSub("stepUpload", "Processing video… " + (data.encodeProgress || 0) + "%");
+
+    if (data.failed) throw new Error("Video processing failed on CDN. Please try again.");
+    if (data.done && data.cdnUrl) return data.cdnUrl;
+  }
+  throw new Error("Video processing timed out. Try a shorter video or different format.");
 }
 
 // ═══════════════════════════════════════════════
@@ -609,34 +660,8 @@ async function startUrlFlow(url) {
 }
 
 // ═══════════════════════════════════════════════
-// ⬆️ BUNNY UPLOAD
+// ⬆️ BUNNY UPLOAD (split into guid fetch + poll)
 // ═══════════════════════════════════════════════
-async function uploadToBunny(file) {
-  // 1. Create video entry
-  const createRes = await fetch(WORKER + "/create-bunny-video", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title: file.name })
-  });
-  if (!createRes.ok) {
-    const e = await createRes.json().catch(() => ({}));
-    throw new Error("CDN error: " + (e.error || createRes.status));
-  }
-  const { guid, cdnHost } = await createRes.json();
-  fillBar("fillUpload", 35);
-
-  // 2. Upload file body
-  const uploadRes = await fetch(WORKER + "/upload-bunny-chunk?guid=" + guid, {
-    method: "PUT",
-    body: file
-  });
-  if (!uploadRes.ok) {
-    const e = await uploadRes.json().catch(() => ({}));
-    throw new Error("Upload failed: " + (e.error || uploadRes.status));
-  }
-
-  return "https://" + cdnHost + "/" + guid + "/play_720p.mp4";
-}
 
 // ═══════════════════════════════════════════════
 // 🎙️ TRANSCRIPTION
@@ -1064,17 +1089,22 @@ function showPhase(id) {
   });
 }
 
-function showEditor(url) {
-  // Build video player
+// shareCdnUrl is optional: used in student exercise for video player
+// localUrl can be a blob: URL for local preview or a public URL
+function showEditor(localUrl, shareCdnUrl) {
+  if (shareCdnUrl) videoUrl = shareCdnUrl; // use CDN URL for sharing
+
   const area = document.getElementById("videoArea");
   area.style.display = "block";
-  if (url.includes("youtube") || url.includes("youtu.be")) {
-    const ytId = (url.match(/(?:v=|youtu\.be\/|embed\/)([^&?]+)/) || [])[1];
+
+  const displayUrl = localUrl || shareCdnUrl || "";
+  if (displayUrl.includes("youtube") || displayUrl.includes("youtu.be")) {
+    const ytId = (displayUrl.match(/(?:v=|youtu\.be\/|embed\/)([^&?]+)/) || [])[1];
     area.innerHTML = ytId
-      ? `<iframe src="https://www.youtube.com/embed/${ytId}" frameborder="0" allowfullscreen></iframe>`
+      ? '<iframe src="https://www.youtube.com/embed/' + ytId + '" frameborder="0" allowfullscreen></iframe>'
       : "";
-  } else if (url.startsWith("http")) {
-    area.innerHTML = `<video controls><source src="${url}"></video>`;
+  } else if (displayUrl) {
+    area.innerHTML = '<video controls><source src="' + displayUrl + '"></video>';
   }
 
   renderTranscript();
