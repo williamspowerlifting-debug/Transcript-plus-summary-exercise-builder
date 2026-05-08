@@ -566,7 +566,12 @@ async function handleFileUpload(file) {
       xhr.send(file);
     });
 
-    bunnyDirectUrl = "https://" + created.cdnHost + "/" + bunnyGuid + "/playlist.m3u8";
+    bunnyDirectUrl =
+  "https://vz-" +
+  created.libraryId +
+  ".b-cdn.net/" +
+  bunnyGuid +
+  "/play.mp4";
     bunnyEmbedUrl  = "https://iframe.mediadelivery.net/embed/" + created.libraryId + "/" + bunnyGuid;
     videoMode = "bunny";
 
