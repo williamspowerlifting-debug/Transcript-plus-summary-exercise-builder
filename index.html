@@ -566,7 +566,7 @@ async function handleFileUpload(file) {
       xhr.send(file);
     });
 
-    bunnyDirectUrl = "https://" + created.cdnHost + "/" + bunnyGuid + "/play_720p.mp4";
+    bunnyDirectUrl = "https://" + created.cdnHost + "/" + bunnyGuid + "/playlist.m3u8";
     bunnyEmbedUrl  = "https://iframe.mediadelivery.net/embed/" + created.libraryId + "/" + bunnyGuid;
     videoMode = "bunny";
 
@@ -602,7 +602,7 @@ async function waitForBunnyReady() {
         const box = document.getElementById("videoBox");
         box.innerHTML =
           '<video id="builderPlayer" class="video-player" controls crossorigin="anonymous">' +
-          '<source src="' + bunnyDirectUrl + '" type="video/mp4"></video>';
+          '<source src="' + bunnyDirectUrl + '" type="application/x-mpegURL"></video>';
         builderPlayer = document.getElementById("builderPlayer");
         return;
       }
