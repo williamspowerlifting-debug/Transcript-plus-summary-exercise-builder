@@ -591,24 +591,32 @@ async function handleFileUpload(file) {
 }
 
 async function waitForBunnyReady() {
+
   const status = document.getElementById("transcribeStatus");
-  status.className = "status";
-  status.innerText = "⏳ Waiting for video to be ready…";
+
   for (let i = 0; i < 60; i++) {
+
     await new Promise(r => setTimeout(r, 5000));
-    try {
-      const head = await fetch(bunnyDirectUrl, { method: "HEAD" });
-      if (head.ok) {
-        const box = document.getElementById("videoBox");
-        box.innerHTML =
-          '<video id="builderPlayer" class="video-player" controls crossorigin="anonymous">' +
-          '<source src="' + bunnyDirectUrl + '" type="application/x-mpegURL"></video>';
-        builderPlayer = document.getElementById("builderPlayer");
-        return;
-      }
-    } catch {}
-    status.innerText = "⏳ Video processing… (" + ((i + 1) * 5) + "s)";
+
+    const res = await fetch(
+      WORKER + "/bunny-status?guid=" + bunnyGuid
+    );
+
+    const data = await res.json();
+
+    if (data.done) {
+      return;
+    }
+
+    if (data.failed) {
+      throw new Error("Bunny encoding failed");
+    }
+
+    status.innerText =
+      "⏳ Video processing… " +
+      (data.encodeProgress || 0) + "%";
   }
+
   throw new Error("Video took too long to process");
 }
 
