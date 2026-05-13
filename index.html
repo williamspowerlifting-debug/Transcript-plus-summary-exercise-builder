@@ -1139,16 +1139,34 @@ function generateLink() {
     };
   }
 
-  const encoded = encodeURIComponent(JSON.stringify(slim));
-  const link    = location.origin + location.pathname + "?data=" + encoded;
-
+  // Show loading state
   const linkBox = document.getElementById("link");
-  linkBox.className = "status success";
-  linkBox.innerHTML =
-    '<b>✅ Student Link:</b><br>' +
-    '<a href="' + link + '" target="_blank" style="word-break:break-all;">' + link + '</a>' +
-    '<br><button class="primary-blue" style="margin-top:8px;" onclick="copyLink()">📋 Copy Link</button>';
-  window._lastLink = link;
+  linkBox.className = "status";
+  linkBox.innerHTML = '<b>⏳ Saving lesson...</b>';
+
+  // Save to Cloudflare KV via worker
+  fetch(window.WORKER_URL + "/save-lesson", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ lesson: slim })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) throw new Error(data.error);
+      
+      const link = data.url;
+      linkBox.className = "status success";
+      linkBox.innerHTML =
+        '<b>✅ Student Link:</b><br>' +
+        '<a href="' + link + '" target="_blank" style="word-break:break-all;">' + link + '</a>' +
+        '<br><button class="primary-blue" style="margin-top:8px;" onclick="copyLink()">📋 Copy Link</button>';
+      window._lastLink = link;
+    })
+    .catch(err => {
+      linkBox.className = "status error";
+      linkBox.innerHTML = '<b>❌ Error saving link:</b><br>' + err.message;
+      console.error("Save lesson error:", err);
+    });
 }
 
 function copyLink() {
@@ -1543,8 +1561,35 @@ window.handleSummaryGapKey = function(e) {
 <!-- ═══════════════════════════════════════════════════════════ -->
 <script>
 (function () {
-  const params  = new URLSearchParams(location.search);
+  const params = new URLSearchParams(location.search);
+  const lessonId = params.get("id");
   const rawData = params.get("data");
+
+  // Handle new short-link format (id parameter from KV)
+  if (lessonId) {
+    document.getElementById("app").innerHTML = 
+      '<div class="card"><h2>⏳ Loading lesson...</h2></div>';
+    
+    fetch(window.WORKER_URL + "/load-lesson?id=" + encodeURIComponent(lessonId))
+      .then(res => {
+        if (!res.ok) throw new Error("Lesson not found or expired");
+        return res.json();
+      })
+      .then(data => {
+        if (data.mode === "summary") {
+          startStudentSummary(data);
+        } else {
+          startStudent(data);
+        }
+      })
+      .catch(err => {
+        document.getElementById("app").innerHTML =
+          '<div class="card"><h2>⚠️ Error loading lesson</h2><p>' + err.message + '</p></div>';
+      });
+    return;
+  }
+
+  // Handle legacy long-link format (data parameter with encoded JSON)
   if (!rawData) return;
 
   try {
